@@ -1,0 +1,106 @@
+!&EXT_RESTART
+!RESTART_FILE_NAME   md-1.restart
+!RESTART_POS T
+!&END EXT_RESTART
+
+ &GLOBAL
+   PREFERRED_DIAG_LIBRARY  ELPA
+   PRINT_LEVEL  MEDIUM
+   PROJECT_NAME md
+   RUN_TYPE  MD
+   WALLTIME 47:55:00
+   FLUSH_SHOULD_FLUSH  T
+ &END GLOBAL
+
+ &MOTION
+   &MD
+     ENSEMBLE  NVT
+     STEPS  4000
+     TIMESTEP     5.0E-01
+     TEMPERATURE     3.0000000000000006E+02
+     TEMP_TOL     1.5000000000000000E+02
+     &THERMOSTAT
+       TYPE  CSVR
+       REGION  GLOBAL
+       &CSVR
+         TIMECON     9.9999999999999986E+01
+      &END CSVR
+     &END THERMOSTAT
+     &PRINT
+       &ENERGY  SILENT
+         &EACH
+           MD  10
+        &END EACH
+       &END ENERGY
+       &PROGRAM_RUN_INFO  SILENT
+         &EACH
+           QS_SCF  0
+           MD  1
+         &END EACH
+       &END PROGRAM_RUN_INFO
+     &END PRINT
+   &END MD
+   &PRINT
+     &TRAJECTORY  SILENT
+       &EACH
+         MD  10
+       &END EACH
+     &END TRAJECTORY
+     &RESTART  SILENT
+       BACKUP_COPIES  1
+       &EACH
+         MD  10
+       &END EACH
+     &END RESTART
+     &FORCES
+       &EACH
+        MD 10
+       &END EACH
+     &END FORCES
+   &END PRINT
+ &END MOTION
+
+ &FORCE_EVAL
+  METHOD  QS
+  &DFT
+!     LSD !local spin density - unrestricted
+     &QS
+      METHOD XTB
+      &XTB
+       &PARAMETER
+         PARAM_FILE_NAME /lustre/shared/ucl/apps/cp2k/8.2/cp2k-8.2/data/xTB_parameters
+         DISPERSION_PARAMETER_FILE /lustre/shared/ucl/apps/cp2k/8.2/cp2k-8.2/data/dftd3.dat
+       &END PARAMETER
+       CHECK_ATOMIC_CHARGES F
+       DO_EWALD  T
+       USE_HALOGEN_CORRECTION F 
+      &END XTB
+     &END QS
+     &SCF
+      SCF_GUESS RESTART
+      MAX_SCF 50
+      EPS_SCF 5.E-6
+      &OT ON
+        PRECONDITIONER FULL_SINGLE_INVERSE
+        MINIMIZER DIIS
+      &END
+      &OUTER_SCF
+        MAX_SCF 200
+        EPS_SCF 5.E-6
+      &END OUTER_SCF
+     &END SCF
+   &END DFT
+
+   &SUBSYS
+     &CELL
+       ABC  27.31 24.65 37.068 
+       ALPHA_BETA_GAMMA 90.42  88.33  100.92
+       PERIODIC  XYZ
+     &END CELL
+     &TOPOLOGY
+       COORD_FILE_NAME 10_coord.xyz
+       COORD_FILE_FORMAT  XYZ
+       NUMBER_OF_ATOMS 1404 
+     &END TOPOLOGY
+   &END SUBSYS
+ &END FORCE_EVAL
